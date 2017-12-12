@@ -1,0 +1,56 @@
+# Time Series Analysis 
+# forecast, ARIMA
+
+install.packages("forecast")
+library("forecast")
+library("zoo")
+
+# Loading the monthly sales data from 2014 to October 2017 in a zoo time series
+# The FUN parameter indicates that the time series is monthly (as.yearmon)
+
+precosM <- read.zoo("Vendas_Mes_2014_2017.csv", sep = ";", header = TRUE, format = "%b/%y", FUN = as.yearmon)
+head(precosM)
+View(precosM)
+
+# Plot
+
+plot(precosM, main = "Sales", col = "blue", xlab = "Date", ylab = "Price")
+
+# Checking the number of periods in the data series
+frequency(precosM)
+
+
+# Model Identification and estimation
+
+# ARIMA models are sophisticated models that use correlations between observations at various times.
+# ARIMA models show good results when the series is relatively long.
+# We use the auto.arima function provided by the forecast package to identify the optimal model and estimate the coefficients
+# in a single step.
+# stationary = TRUE, restrict search to stationary models.
+# seasonal = FALSE restricts the search to non-seasonal models.
+# Akaike information criteria as the relative quality measure to be used in the template selection.
+modM <- auto.arima(precosM, stationary = TRUE, seasonal = TRUE, ic = "aic")
+
+
+# Viewing the template
+modM
+
+# If the model contains coefficients that are insignificant, we can estimate the new model using the arima function
+# with the fixed argument.
+confint(modM)
+
+# To evaluate how well the model represents the sample data, we can plot the gross monthly returns
+# (the fine black solid line) versus the adjusted values (dashed red dashed line).
+
+plot(modM$x, lty = 1, main = "Sales: Gross data vs. Fitted Values", ylab = "Return %", xlab = "Date")
+lines(fitted(modM), lty = 2,lwd = 2, col = "red")
+
+# Calculating other measures of accuracy
+accuracy(modM)
+
+# Predicting monthly return 3 months ahead
+# To trace the forecast with standard errors, we can use the following command:
+predict(modM, n.ahead = 3)
+
+# Plot
+plot(forecast(mod))
